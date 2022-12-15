@@ -10,7 +10,8 @@ class Handler extends Thread {
             client = new ClientConnected();
             client.socket = s;
             OutputStream os = s.getOutputStream();
-            client.sender = new BufferedWriter(new OutputStreamWriter(os));
+            client.sender = new PrintWriter(os, true);
+
             InputStream is = s.getInputStream();
             client.receiver = new BufferedReader(new InputStreamReader(is));
             client.port = s.getPort();
@@ -23,11 +24,20 @@ class Handler extends Thread {
         String clientHost = client.socket.getInetAddress().getHostAddress();
         int clientPort = client.socket.getPort();
         System.out.println("Client host = " + clientHost + " Client port = " + clientPort);
+
+
         try {
             while (true) {
-                String msgFromClient = client.receiver.readLine();
-                if (msgFromClient == null)
-                    throw new IOException();
+                InputStream clientIn = client.socket.getInputStream();
+                BufferedReader br = new BufferedReader(new
+                        InputStreamReader(clientIn));
+                System.out.println("Doi tin nhan");
+                String msgFromClient = br.readLine();
+
+//                String msgFromClient = client.receiver.readLine();
+                /*if (msgFromClient == null)
+                    throw new IOException();*/
+                System.out.println("Nhan tin");
                 System.out.println("Message received from client = " + msgFromClient);
 
                 if (msgFromClient != null && !msgFromClient.equalsIgnoreCase("bye")) {
@@ -43,14 +53,12 @@ class Handler extends Thread {
                         String name = msgClient[4];
                         client.userName = name;
                         Server.connectedClient.add(client);
-                        ansMsg ="Hello" +name;
-                        client.sender.write(ansMsg);
-                        client.sender.newLine();
-                        String msg = client.userName + " has joined ";
-                        sendAll(msg);
+                        ansMsg ="Hello " +name;
+                        client.sender.println(ansMsg);
+
                     }
                     for (ClientConnected connectedClient : Server.connectedClient) {
-                        System.out.println("Check Exit");
+                        System.out.println("Check Exist");
                         System.out.println(connectedClient.userName);
                         System.out.println(client.userName);
                         if (connectedClient.userName.equals(client.userName )) {
@@ -60,33 +68,26 @@ class Handler extends Thread {
                     }
 
                     if(!userNameExisted){
-
-                        client.sender.write("Pls input your name according to the syntax 'Hello, my name is <name>'");
-                        client.sender.newLine();
-                        client.sender.flush();
-
-
+                        client.sender.println("Pls input your name according to the syntax 'Hello, my name is <name>'");
                     }
                     else {
-                        for (ClientConnected user : Server.connectedClient) {
-                            System.out.println("Send text from " + client.userName );
-                            String msg = client.userName + ": "+msgFromClient;
-                            sendAll(msg);
-                        }
+                        String msg = client.userName + " has joined ";
+                        sendAll(msg);
                     }
                 }
 
                 // Close sockets
                 if (msgFromClient != null && msgFromClient.equalsIgnoreCase("Goodbye")) {
                     String ansMsg = "Good bye";
-                    client.sender.write(ansMsg);
-                    client.sender.newLine();
+                    client.sender.println(ansMsg);
                     client.socket.close();
+                    Server.connectedClient.remove(client);
                     System.out.println("Socket ENDED: " + client.socket);
                     return;
                 }
                 if (msgFromClient != null && msgFromClient.equalsIgnoreCase("bye")) {
                     client.socket.close();
+                    Server.connectedClient.remove(client);
                     System.out.println("Socket ENDED: " + client.socket);
                     return;
                 }
@@ -95,14 +96,13 @@ class Handler extends Thread {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
     }
     public void sendAll(String message) throws IOException {
         for (ClientConnected user : Server.connectedClient) {
             System.out.println("Send text from " + client.userName );
-            user.sender.write(message);
-            user.sender.newLine();
+            user.sender.println(message);
 //            user.sender.write('\0');
-            user.sender.flush();
         }
     }
 }

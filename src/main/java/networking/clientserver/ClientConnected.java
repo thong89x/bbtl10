@@ -2,6 +2,7 @@ package networking.clientserver;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.List;
 
@@ -10,15 +11,7 @@ public class ClientConnected {
     public int port;
     public Socket socket;
     public BufferedReader receiver;
-    public BufferedWriter sender;
-
-    public ClientConnected(String userName, int port, Socket socket, BufferedReader receiver, BufferedWriter sender) {
-        this.userName = userName;
-        this.port = port;
-        this.socket = socket;
-        this.receiver = receiver;
-        this.sender = sender;
-    }
+    public PrintWriter sender;
 
     public ClientConnected() {
     }
